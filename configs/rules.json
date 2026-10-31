@@ -1,0 +1,44 @@
+{
+  "rules": [
+    {
+      "id": "login-brute-force",
+      "priority": 100,
+      "match": { "path_prefix": "/login", "methods": ["POST"] },
+      "key_by": ["ip"],
+      "strategy": "sliding_window_counter",
+      "limits": [ { "limit": 5, "window": "1m" }, { "limit": 50, "window": "24h" } ]
+    },
+    {
+      "id": "free-tier-api",
+      "priority": 50,
+      "match": { "path_prefix": "/v1/", "attrs": { "tier": "free" } },
+      "key_by": ["api_key"],
+      "strategy": "token_bucket",
+      "limits": [ { "limit": 100, "window": "1m", "burst": 20 } ]
+    },
+    {
+      "id": "pro-tier-api",
+      "priority": 50,
+      "match": { "path_prefix": "/v1/", "attrs": { "tier": "pro" } },
+      "key_by": ["api_key"],
+      "strategy": "gcra",
+      "limits": [ { "limit": 5000, "window": "1m", "burst": 500 } ]
+    },
+    {
+      "id": "per-ip-backstop",
+      "priority": 1,
+      "key_by": ["ip"],
+      "strategy": "gcra",
+      "limits": [ { "limit": 1000, "window": "1s", "burst": 2000 } ]
+    },
+    {
+      "id": "new-search-limit-shadow",
+      "priority": 10,
+      "shadow": true,
+      "match": { "path_prefix": "/v1/search" },
+      "key_by": ["tenant", "api_key"],
+      "strategy": "sliding_window_counter",
+      "limits": [ { "limit": 20, "window": "1s" } ]
+    }
+  ]
+}

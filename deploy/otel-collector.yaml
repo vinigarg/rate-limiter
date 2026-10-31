@@ -1,0 +1,17 @@
+receivers:
+  otlp:
+    protocols:
+      http: { endpoint: 0.0.0.0:4318 }   # limiterd pushes OTLP/HTTP JSON here
+processors:
+  batch: { timeout: 5s }
+exporters:
+  prometheus: { endpoint: 0.0.0.0:8889 } # scraped by Prometheus
+  debug: { verbosity: basic }
+  # Swap in your real pipeline, e.g.:
+  # otlphttp/backend: { endpoint: https://otlp.example.com, headers: { authorization: "Bearer ${env:TOKEN}" } }
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [prometheus, debug]
